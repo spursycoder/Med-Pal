@@ -13,6 +13,7 @@ const medicineRoutes = require("./routes/medicineRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const labCountRoutes = require("./routes/labCountRoutes.js");
+const userRoutes = require("./routes/userRoutes");
 
 // middleware
 app.use(express.json());
@@ -27,6 +28,7 @@ app.use("/api/medicines", medicineRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/labCounts", labCountRoutes);
+app.use("/api/user", userRoutes);
 
 // connect to db
 mongoose

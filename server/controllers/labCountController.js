@@ -78,6 +78,18 @@ const deleteLabCount = async (req, res) => {
 	res.status(200).json(labCount);
 };
 
+const deleteLatestLabCount = async (req, res) => {
+	LabCounts.findOneAndDelete({}, { sort: { _id: -1 } })
+		.then((doc) => {
+			console.log(doc);
+			res.status(200).json(doc);
+		})
+		.catch((err) => {
+			console.error(err);
+			res.status(400).json({ error: err.message });
+		});
+};
+
 const updateLabCount = async (req, res) => {
 	const { id } = req.params;
 
@@ -106,5 +118,6 @@ module.exports = {
 	deleteLabCount,
 	updateLabCount,
 	getTypeOfLabCount,
+	deleteLatestLabCount,
 
 };

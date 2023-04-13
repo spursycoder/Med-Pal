@@ -6,10 +6,11 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import './search.css'
 import Card from 'react-bootstrap/Card';
+import {IoIosNavigate} from 'react-icons/io'
 
 const Search = () => {
 	const [searchQuery, setSearchQuery] = useState("");
-	const [filters, setFilters] = useState("Select a category");
+	const [filters, setFilters] = useState("");
 	const [results, setResults] = useState(null);
 	const [min, setMin] = useState(1);
 	const [max, setMax] = useState(1000);
@@ -110,7 +111,7 @@ const Search = () => {
 					results.map((elem) => {
 						return (
 							<>
-							<ul>
+							{/* <ul>
 								<li style={{ marginLeft: "50vw" }}>
 									<img
 										style={{ height: "100px" }}
@@ -133,17 +134,21 @@ const Search = () => {
 								<li style={{ marginLeft: "50vw" }}>
 									Ph. No. : {elem.phoneNumber}
 								</li>
-							</ul>
+							</ul> */}
 
-							<Card style={{ width: '18rem' }}>
-							<Card.Body>
-							  <Card.Title>Card Title</Card.Title>
-							  <Card.Text>
-								Some quick example text to build on the card title and make up the
-								bulk of the card's content.
-							  </Card.Text>
+							<Card style={{ width: '40rem', marginLeft:"30vw" }}>
+							<Card.Body className="d-flex">
+								<div>
 							  <img src="https://t4.ftcdn.net/jpg/00/64/67/63/360_F_64676383_LdbmhiNM6Ypzb3FM4PPuFP9rHe7ri8Ju.jpg" width={100}/>
-							  <Button variant="primary">Go somewhere</Button>
+							  </div>
+							  <div>
+							  <Card.Title>{elem.doctorName}</Card.Title>
+							  <Card.Text>Address : {elem.address}</Card.Text>
+							  <Card.Text>Fees : {elem.fees}</Card.Text>
+							  <Card.Text>Phone number : {elem.phoneNumber}</Card.Text>
+							  <Card.Text>Speciality : {elem.speciality}</Card.Text>
+							  <Button variant="success"><IoIosNavigate style={{fontSize:"30px", margin:"5px"}}/></Button>
+							  </div>
 							</Card.Body>
 						  </Card>
 						  </>
