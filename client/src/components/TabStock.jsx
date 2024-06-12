@@ -1,77 +1,148 @@
-const TabStock = () => {
-	const columns = [
-		{
-			name: "Crocin",
-			stock: "10 days",
-			expiryDate: "10-10-2024",
-		},
-		{
-			name: "Atorvastatin",
-			stock: "12 days",
-			expiryDate: "4-12-2023",
-		},
-		{
-			name: "Levothyroxine",
-			stock: "31 days",
-			expiryDate: "6-1-2023",
-		},
-		{
-			name: "Metformin",
-			stock: "10 days",
-			expiryDate: "19-4-2024",
-		},
-		{
-			name: "Lisinopril",
-			stock: "31 days",
-			expiryDate: "22-6-2023",
-		},
-		{
-			name: "Amlodipine",
-			stock: "12 days",
-			expiryDate: "16-8-2024",
-		},
-		{
-			name: "Metoprolol",
-			stock: "40 days",
-			expiryDate: "10-9-2024",
-		},
-		{
-			name: "Albuterol",
-			stock: "1 day",
-			expiryDate: "18-3-2025",
-		},
-	];
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { Button, Table } from "react-bootstrap";
+import { AiFillMinusCircle, AiFillPlusCircle } from "react-icons/ai";
+import { Link } from "react-router-dom";
+import { useAuthContext } from "../hooks/useAuthContext";
+import { Tooltip, OverlayTrigger } from "react-bootstrap";
+import LoadingCircle from "./SkeletonLoaders/LoadingCircle";
 
-	return (
-		<>
-			<div id="tab-stock" className="dash-component">
-				<legend align="center">Tablet Stock</legend>
+const TabStock = (props) => {
+  const [fetchedMedicineData, setFetchedMedicineData] = useState(null);
+  const { user } = useAuthContext();
+  const {handleAddLogs} = props
+  useEffect(
+    () => setFetchedMedicineData(props.fetchedMedicineData),
+    [props.fetchedMedicineData]
+  );
 
-				<table>
-					<tr>
-						<th>Name</th>
-						<th>Stock</th>
-						<th>Expiry</th>
-					</tr>
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
 
-					{columns.map((val, key) => {
-						return (
-							<tr key={key}>
-								<td>{val.name}</td>
-								<td>{val.stock}</td>
-								<td>{val.expiryDate}</td>
-							</tr>
-						);
-					})}
-				</table>
+  const handleDelete = async (deleteID) => {
+    const axios = require("axios");
 
-				<div className="dash-button-container">
-					<button className="dash-button">
-						<span>+</span>
-					</button>
-				</div>
-			</div>
-		</>
-	);
+    let config = {
+      method: "delete",
+      maxBodyLength: Infinity,
+      url: "https://medpal-backend.onrender.com/api/medicines/" + deleteID,
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        props.handleFetch();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const handleEdit = async (e, id, quantity, name) => {
+    if (quantity === 1) {
+      handleDelete(id);
+      props.setShowTaken(true);
+      props.setTabletName(name);
+      handleAddLogs(name);
+      return;
+    }
+    
+    e.preventDefault();
+    console.log("ID ", id);
+    console.log("QUANTITY ", quantity);
+    let data = JSON.stringify({
+      quantity: quantity - 1,
+    });
+
+    let config = {
+      method: "patch",
+      maxBodyLength: Infinity,
+      url: `https://medpal-backend.onrender.com/api/medicines/${id}`,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+      data: data,
+    };
+    
+    axios
+    .request(config)
+    .then((response) => {
+      props.setShowTaken(true);
+      props.setTabletName(name);
+      props.handleFetch();
+      handleAddLogs(name);
+    })
+    .catch((error) => {
+      console.log(error);
+      // setShowError(true);
+    });
+  };
+
+  return (
+    <>
+      <div id="tab-stock" className={fetchedMedicineData?"dash-component":"dash-component loading-screen"}>
+        <legend align="center">Medicine Inventory</legend>
+    {
+      !fetchedMedicineData?<LoadingCircle/>:(
+        <>
+<Table striped bordered hover>
+          <tr>
+            <th>Name</th>
+            <th>Stock</th>
+            <th>Expiry</th>
+            <th>Action</th>
+          </tr>
+
+          {fetchedMedicineData?.map((val, key) => {
+            return (
+              <tr key={key}>
+                <td>{val.name}</td>
+                <td>{val.quantity}</td>
+                <td>{new Date(val.expiry).toLocaleDateString()}</td>
+                <td>
+                  <div>
+                    <OverlayTrigger
+                      placement="right"
+                      overlay={<Tooltip>Take Medicine</Tooltip>}
+                    >
+                      <Button
+                        onClick={(e) =>
+                          handleEdit(e, val._id, val.quantity, val.name)
+                        }
+                        variant="secondary"
+                      >
+                        <AiFillMinusCircle />
+                      </Button>
+                    </OverlayTrigger>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </Table>
+
+        <div className="dash-button-container">
+          <Link to={"/medicines"}>
+            {" "}
+            <Button variant="info" onClick={scrollToTop}>
+              <AiFillPlusCircle color="white" />
+            </Button>
+          </Link>
+        </div>
+        </>
+      )
+    }
+        
+      </div>
+    </>
+  );
 };
 export default TabStock;

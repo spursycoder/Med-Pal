@@ -5,6 +5,16 @@ import axios from "axios";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Toast from "react-bootstrap/Toast";
+import Calendar from '../components/Calendar'
+import { useEffect } from "react";
+import Navbar from "../components/Navbar";
+import { FaClinicMedical } from 'react-icons/fa'
+import AddAppointmentModal from '../components/Appointments/AddAppointmentModal'
+import './appointments.css'
+import { useAuthContext } from "../hooks/useAuthContext";
+import Sidenav from '../components/Sidenav'
+import Footer from '../components/Footer'
+
 const Appointments = () => {
 	const [doctorName, setDoctorName] = useState(null);
 	const [doctorNumber, setDoctorNumber] = useState(null);
@@ -15,6 +25,9 @@ const Appointments = () => {
 	const [show, setShow] = useState(false);
 	const [month, setMonth] = useState("");
 	const [error, setError] = useState(false);
+	const {user} = useAuthContext();
+
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
@@ -71,9 +84,10 @@ const Appointments = () => {
 		let config = {
 			method: "post",
 			maxBodyLength: Infinity,
-			url: "http://localhost:4000/api/appointments",
+			url: "https://medpal-backend.onrender.com/api/appointments",
 			headers: {
 				"Content-Type": "application/json",
+				Authorization:`Bearer ${user.token}`
 			},
 			data: data,
 		};
@@ -81,20 +95,14 @@ const Appointments = () => {
 		axios
 			.request(config)
 			.then((response) => {
-				console.log(JSON.stringify(response.data));
+				handleFetch();
 			})
 			.catch((error) => {
 				console.log(error);
 			});
 
 		try {
-			console.log("Sent Data :", {
-				doctorName,
-				doctorNumber,
-				doctorAddress,
-				appointmentDateAndTime,
-				notes,
-			});
+			
 			if (doctorName) setShow(true);
 			else setError(true);
 		} catch (err) {
@@ -103,56 +111,59 @@ const Appointments = () => {
 		}
 	};
 
-	const handleFetch = async (e) => {
-		// try {
-		// 	// !!!HANDLE GET REQUEST HERE
-		// 	const response = await axios.get(
-		// 		`https://random-data-api.com/api/v2/users?size=5`
-		// 	);
-		// 	setFetchedData(response.data);
-		// 	console.log("Fetched Data :", response.data);
-		// } catch (err) {
-		// 	console.log(err);
-		// }
 
+
+	useEffect(() =>{
+		
+		handleFetch()
+	}, [])
+
+	
+	const handleFetch = async (e) => {
 		try {
-			const response = await axios.get(
-				`http://localhost:4000/api/appointments`
-			);
+			const axios = require("axios");
+			let config = {
+				method: "get",
+				url: "https://medpal-backend.onrender.com/api/appointments",
+				headers: {
+					"Content-Type": "application/json",
+					"Authorization": `Bearer ${user.token}`,
+				},
+				data: {},
+			};
+			const response = await axios(config);
 			setFetchedData(response.data);
-			console.log(response.data[0]);
 		} catch (err) {
 			console.log(err);
 		}
-	};
+	}
+	
+
 
 	return (
 		<>
-			<div className="w-100">
+
 				<div
 					id="toasts"
 					style={{
-						position: "fixed",
-						zIndex: "10",
-						top: "3%",
-						right: "3%",
+						position: "relative",
+						zIndex: "30",
 					}}
 				>
 					<Toast
 						onClose={() => setShow(false)}
-						bg="light"
+						bg="success"
 						position="middle-center"
 						show={show}
 						delay={3000}
 						autohide
 						style={{
 							position: "fixed",
-							zIndex: "10",
-							top: "3%",
+							top: "10%",
 							right: "3%",
 						}}
 					>
-						<Toast.Header>
+						<Toast.Header className="text-success">
 							<img
 								src="holder.js/20x20?text=%20"
 								className="rounded me-2"
@@ -161,13 +172,13 @@ const Appointments = () => {
 							<strong className="me-auto">
 								Appointment Added!
 							</strong>
-							<small>
+							<small className="text-secondary">
 								Doctor{" "}
 								{doctorName?.charAt(0).toUpperCase() +
 									doctorName?.slice(1)}
 							</small>
 						</Toast.Header>
-						<Toast.Body>
+						<Toast.Body className="text-white">
 							<b>
 								{appointmentDateAndTime?.getDate()}th of {month}
 							</b>{" "}
@@ -185,7 +196,11 @@ const Appointments = () => {
 						show={error}
 						delay={2000}
 						autohide
-						style={{ position: "relative", zIndex: "10" }}
+						style={{
+							position: "fixed",
+							top: "10%",
+							right: "3%",
+						}}
 					>
 						<Toast.Header>
 							<img
@@ -204,121 +219,33 @@ const Appointments = () => {
 					</Toast>
 				</div>
 
-				<h1>Appointments Page</h1>
-				<div className="d-flex justify-content-evenly">
-					<Form>
-						<Form.Group className="mb-3 " controlId="doctorName">
-							<Form.Label>Doctor Name</Form.Label>
-							<Form.Control
-								type="email"
-								placeholder="Enter name"
-								onChange={(e) => setDoctorName(e.target.value)}
-							/>
-						</Form.Group>
+				<Navbar buttons='true' LogButton='true' />
 
-						<Form.Group className="mb-3" controlId="doctorNumber">
-							<Form.Label>Doctor Ph.no</Form.Label>
-							<Form.Control
-								type="tel"
-								placeholder="Enter number"
-								onChange={(e) =>
-									setDoctorNumber(e.target.value)
-								}
-							/>
-						</Form.Group>
+				<div className="page-container" > 
+				<Sidenav />
 
-						<Form.Group className="mb-3" controlId="doctorAddress">
-							<Form.Label>Address</Form.Label>
-							<textarea
-								placeholder="Enter address"
-								onChange={(e) =>
-									setDoctorAddress(e.target.value)
-								}
-							/>
-						</Form.Group>
-						<Form.Group className="mb-3" controlId="notes">
-							<Form.Label>Notes</Form.Label>
-							<textarea
-								placeholder="Enter notes"
-								onChange={(e) => setNotes(e.target.value)}
-							/>
-						</Form.Group>
+				<div className="w-100" style={{minHeight:"100vh", display:"flex", flexDirection:"column"}}>
+					<div style={{marginBottom:"auto"}}>
+					<h3 className="charts-heading">
+						My Appointments <FaClinicMedical style={{ fontSize: "30px" }} />
+					</h3>
+						
+				<div id='appointments-container' >
+				
+				<Calendar id='calendar-component' appointments={fetchedData? fetchedData : null} setDoctorName={setDoctorName} 
+				setDoctorNumber={setDoctorNumber} 
+				setDoctorAddress={setDoctorAddress} 
+				setNotes={setNotes} 
+				setAppointmentDateAndTime={setAppointmentDateAndTime} 
+				handleSubmit={handleSubmit}
+				handleFetch={handleFetch}
+				showList={true}
+				/>
 
-						<Form.Group
-							className="mb-3"
-							controlId="appointmentTime"
-						>
-							<Form.Label>Time</Form.Label>
-							<Form.Control
-								type="datetime-local"
-								placeholder="Time"
-								onChange={(e) =>
-									setAppointmentDateAndTime(
-										new Date(e.target.value)
-									)
-								}
-							/>
-						</Form.Group>
-
-						<Button
-							variant="primary"
-							type="submit"
-							onClick={handleSubmit}
-						>
-							Submit
-						</Button>
-					</Form>
-					<div className="ml-5">
-						<h3>Upcoming appointments</h3>
-						<dl></dl>
-						<br></br>
-						<h2>Fetch Appointments and Doctor details</h2>
-						<button
-							className="btn btn-primary"
-							onClick={handleFetch}
-						>
-							Fetch Appointements
-						</button>
-						<div style={{ height: "50vh", overflowY: "scroll" }}>
-							<ol>
-								{fetchedData &&
-									fetchedData.map((element, i) => {
-										return (
-											<li key={i}>
-												<ul>
-													<li
-														key={element.doctorName}
-													>
-														{element.doctorName}
-													</li>
-													<li
-														key={
-															element.phoneNumber
-														}
-													>
-														{element.phoneNumber}
-													</li>
-													<li key={element.address}>
-														{element.address}
-													</li>
-													<li
-														key={
-															element.timeAndDate
-														}
-													>
-														{element.timeAndDate}
-													</li>
-													<li key={element.notes}>
-														{element.notes}
-													</li>
-												</ul>
-											</li>
-										);
-									})}
-							</ol>
-						</div>
-					</div>
 				</div>
+				</div>
+				<Footer/>
+			</div>
 			</div>
 		</>
 	);
